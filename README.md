@@ -12,13 +12,15 @@
     - [Deploy a file](#deploy-a-file)
     - [Deploy a file with Arweave+IPFS](#deploy-a-file-with-arweaveipfs)
     - [Deploy a packaged HTML file](#deploy-a-packaged-html-file)
-    - [Deploy a directory](#deploy-a-directory)
     - [Check a deployment status](#check-a-deployment-status)
     - [Load your keyfile](#load-your-keyfile)
     - [Generate a keyfile](#generate-a-keyfile)
     - [Remove your keyfile](#remove-your-keyfile)
     - [Check your wallet balance](#check-your-wallet-balance)
     - [Send AR to another wallet](#send-ar-to-another-wallet)
+    - [Manually generate and sign a transaction](#manually-generate-and-sign-a-transaction)
+    - [Sign a message](#sign-a-message)
+    - [Verify a signed message](#verify-a-signed-message)
 
 ## Build
 
@@ -106,7 +108,7 @@ arweave deploy path-to-my/index.html --package
 
 ### Deploy a file
 
-If you're deploying HTML pages and have have external resources referenced, like style sheets, JavaScript, or images, then use the [deploy a directory](#deploy-a-directory) workflow.
+If you're deploying HTML pages and have have external resources referenced, like style sheets, JavaScript, or images, then use the [packaged HTML](#deploy-a-packaged-html-file) workflow.
 
 ```
 arweave deploy path-to-my/file.html
@@ -160,58 +162,6 @@ For you can use the package command to process the file without deploying it, th
 
 ```
 arweave package path-to/index.html output/packaged.html
-```
-
-### Deploy a directory
-
-Deploy a directory with a [path manifest](https://github.com/ArweaveTeam/arweave/wiki/Path-Manifests). This is the recommended method for deploying an Arweave application, as each asset will be uploaded independently so there is no need for packaging and asset inlining.
-
-```
-arweave deploy-dir path-to/directory/to-deploy
-```
-
-```
-Preparing files from /Users/test/path-to/directory/to-deploy
-
-ID                                          Size         Fee             Type                 Path
-B65fe71tENkmgmndJQTvLZqVqg4lUsdcmCFudw_uzBk 4.59 kB      0.000019762690  image/png            favicon/source.png
-RBg1ysAnKmlnU8YROY2g2KVbE3d6rgobVV4qzss2Isk 3.55 kB      0.000017101174  image/png            images/logo-node.png
-648-XB1Tf2KDPJUyzMf1Zf1FmWi0F103WMtZydQvhZ8 18.89 kB     0.000056359156  text/html            open-web-hackathon.html
-Kws1-Lr-z4tTGzrqfJQv9Biko_lrBPAr90H2xW_oXtg 22.24 kB     0.000064933485  text/html            technology.html
-w243l_eiYxwS_JPotydO2VVi1uCpYga1CZjWAHuahDU 24.78 kB     0.000071428584  image/svg+xml        images/8.svg
-9HG223hRM46RczvRidgxj1tF5GtoTprL2ItGKXew9Ac 32.27 kB     0.000090591496  image/svg+xml        images/7.svg
-J1CgVMmA0P7YxxynjuWW3J6e5S-Qp6O9Smu8I0nCGSA 22.65 kB     0.000065978098  text/html            hosting.html
-aUJYq1gUTOenMHwlkQWj3YNSiul5O8j0G8lWXlHdx7I 22.79 kB     0.000066350461  image/svg+xml        images/hosting-1.svg
-boN6C7ntD_yi-IGbkBqc0KXr0fz7SGoFLSZ2OKxJYRE 49.53 kB     0.000134780154  text/css             player/player.css
-Eaa4CWHk1KD5QhHAUAjW5zV30391P60mhpHWcMgPGBU 36.59 kB     0.000101662402  text/html            index.html*
-
-kFoajp8jQ1NUS7Rc7AaxwIMXViAdOYPfNQZjZkMlPEU 6.04 kB      0.000023471318  application/x.arweave-manifest+json
-
-Summary
-
-Index: index.html
-Number of files: 78 + 1 manifest
-Total size: 7.91 MB
-Total price: 0.021388749854 AR
-
-Wallet
-
-Address: MDlauADgN7AoVQl4Eqmwr3xHXyKXMqADaiCas3mEyNQ
-Current balance: 48.855183859428 AR
-Balance after uploading: 48.833795109574 AR
-
-Carefully check the above details are correct, then Type CONFIRM to complete this upload 
-```
-
-```
-Uploading...
-
-████████████████████████████████████████ 79/79 100% | 1m49s
-
-Your files are being deployed! 🚀
-Once your files are mined into blocks they'll be available on the following URL
-
-https://arweave.net/kFoajp8jQ1NUS7Rc7AaxwIMXViAdOYPfNQZjZkMlPEU
 ```
 
 ### Check a deployment status
@@ -329,3 +279,81 @@ Address: pEbU_SLfRzEseum0_hMB1Ie-hqvpeHWypRhZiPoioDI
 Current balance: 11.095252211832 AR
 Balance after uploading: 0.673038092357 AR
 ```
+
+
+### Manually generate and sign a transaction
+
+This function can be used to manually generate and sign a transaction. As all of the transaction fields are user supplied no network connection is required, so this is especially useful for signing transactions on an air gapped machine.
+
+The raw transaction output is only displayed on screen as a JSON object, **it will not submitted to the network even if an internet connection is present**. To submit the transaction you will need to manually post it to the network, this can be as simple as saving the JSON object in a file and using cURL e.g. `curl -X POST -d signed_tx_output.json https://arweave.net/tx`, or using Postman, or some other tool.
+
+All amounts are specified in AR and _not_ Winston.
+
+The `--anchor` parameter is used to anchor the transaction to a point in the blockweave, it must be either the last transaction ID for the sending wallet, or the ID of a recent block (_must_ be within the last 50, we recommend last 25). You can quickly find a recent block anchor value using https://arweave.net/tx_anchor
+
+```
+arweave sign-tx --key-file=path/to/arweave-key.json --to=pEbU_SLfRzEseum0_hMB1Ie-hqvpeHWypRhZiPoioDI --amount=20.5 --fee=0.25000000123 --anchor=9ADeIc9pNj737SB8P2-3iSiL7vKSaaO8joiNWdAr1FHxB4T1VRe7GwHQaz74prYU
+```
+
+
+```
+Transaction
+
+ID: i3P51MwXmoy0GTptd8aEHMVSsZo0MekuBChKPi98utI
+
+To: pEbU_SLfRzEseum0_hMB1Ie-hqvpeHWypRhZiPoioDI
+From: MDlauADgN7AoVQl4Eqmwr3xHXyKXMqADaiCas3mEyNQ
+Amount: 20.500000000000 AR
+Fee: 0.250000001230 AR
+Total: 20.750000001230 AR
+
+Signed Transaction:
+
+{"id":"i3P51MwXmoy0GTptd8aEHMVSsZo0MekuBChKPi98utI","last_tx":"9ADeIc9pNj737SB8P2-3iSiL7vKSaaO8joiNWdAr1FHxB4T1VRe7GwHQaz74prYU","owner":"nFMF-h5inUShL8pOk4o_fJ8UqFFkB36U4T-y5Jq-oOWwMxTEcL9CqaTKmzmSj6e_4cBFjuJkXz-VhW7mOjTK1-DZNjrQdtPNHq1aWsz5BbNWOn_B92h6pqfpsi6ypvoGerZqqwee5r2CSAICJdZnAJ1qn0dz1kZ2IivnTkYz1y_NW7coV141-b--CSPrd6z5cQdXnlm7I3bVPzpbRmtDYAq0PgX1_HJmH1huHWBLYE_NYZgLpykv4s7J6i5Z_Lf9_RWpC45lwufJVQQVUF4r69Fw99GrM6gxvrdPhEvRk__ADWiwKNBRe_3ErYaOqfe4gCV7b8cPGbJ9M6hetONzVSbFdpGli2AWgVqm5jKyZV-dWhZ_EsJeq9MkbunYJN0QvtidXiFCj4tIrPwzYNUq2F1jd2j8UVrUTaQ_R_27JY5CgH7T-vk_elWESSdtnpgDKNsC4M3TFVaDC0jDEBcHmjDTvJTSPvl7hfWPf9pKY8ocJPDLpTdiGwNpFp45R4NAzvmhzuo8McdltECLn0kq8fmzleLy8KgEiggpYYug74fs_ZSLNcjOOK2CoXRk1IUN8euPU8MyBb3WevTXJjHiCJBxhaQ_4P9_fX32JxcBZ7pvJ3FUZt0YSdIgqeg-po3GVBOHip8lONPKbWvdNcWnpviMXAXqkmfljEd6IDtF0o0","tags":[],"target":"pEbU_SLfRzEseum0_hMB1Ie-hqvpeHWypRhZiPoioDI","quantity":"20500000000000","data":"","reward":"250000001230","signature":"cQrrMm9miIZZjJ-L6GXRl3OcAp_KUE3K9FI50Rt5Q44OBF-b8_h8keZY9qawDTleIGBuptjXF0A5zAdRbzDLhAOE9YIabB5suPMQd1-8JY0UordLXGpCxUpE416KM7bwKqU9FLrkAk0IbaA6RzMk9BaGqvE7HFFTt0gexeCrmzfC8U1qOcKI_PrED2wtBYC77ioThN37KLEMPXKnC54ruHwYJ7tkn5zyXecjaCTm4zbl7OmBs4iv490ryoTsRlEDgLz4F8bkuR-XY3bvX5T9_5DeCuT_kmpWXAGPE_TrY9FJik1Gija7S-qnKXjB0qznF3g4yXHULDXpRMhILBsM3xmtc_NXmU4Vk1iBSMxQyU0Y3P8Q_WJnAlqA2ENVrmY1R1K6IUTxxcrRv_UnKk34BVONddslCXhLQcJSdMfUZJW43R1vio8C9xuznYz1xyNn4BhT7gWnHEHzKq26YU3yru27cOnKQ0MF2SPVLNc8JeK8rK9ejXLRL89754ruMq7slhRMvkjB-Rzj323bxKp5DXJ_crg84hJMPCV5v8QcKln9q1XjxNvasGn0HActEqU-IxFC3eNDb2sZwf3lhVexVVl5Cni8PhF3AGYJm-vE_Vwh6JR9IP1Lh6SdoafVej9QS5JVfG853b9az71R4OhJzibIlbx6RsRaxf8hTzVeefE"}
+
+This can now be posted to https://arweave.net/tx, or any Arweave node http://0.0.0.0:1984/tx
+```
+
+### Sign a message
+
+This command can sign an arbitrary UTF-8 string message, using your Arweave private key. See the [verify command](#verify-a-signed-message) for verifying signatures.
+
+```
+arweave message-sign --message="my-test-message" --key-file="keys/MDlauADgN7AoVQl4Eqmwr3xHXyKXMqADaiCas3mEyNQ.json"
+```
+
+```
+Arweave address: MDlauADgN7AoVQl4Eqmwr3xHXyKXMqADaiCas3mEyNQ
+
+Message: my-test-message
+
+Public key: nFMF-h5inUShL8pOk4o_fJ8UqFFkB36U4T-y5Jq-oOWwMxTEcL9CqaTKmzmSj6e_4cBFjuJkXz-VhW7mOjTK1-DZNjrQdtPNHq1aWsz5BbNWOn_B92h6pqfpsi6ypvoGerZqqwee5r2CSAICJdZnAJ1qn0dz1kZ2IivnTkYz1y_NW7coV141-b--CSPrd6z5cQdXnlm7I3bVPzpbRmtDYAq0PgX1_HJmH1huHWBLYE_NYZgLpykv4s7J6i5Z_Lf9_RWpC45lwufJVQQVUF4r69Fw99GrM6gxvrdPhEvRk__ADWiwKNBRe_3ErYaOqfe4gCV7b8cPGbJ9M6hetONzVSbFdpGli2AWgVqm5jKyZV-dWhZ_EsJeq9MkbunYJN0QvtidXiFCj4tIrPwzYNUq2F1jd2j8UVrUTaQ_R_27JY5CgH7T-vk_elWESSdtnpgDKNsC4M3TFVaDC0jDEBcHmjDTvJTSPvl7hfWPf9pKY8ocJPDLpTdiGwNpFp45R4NAzvmhzuo8McdltECLn0kq8fmzleLy8KgEiggpYYug74fs_ZSLNcjOOK2CoXRk1IUN8euPU8MyBb3WevTXJjHiCJBxhaQ_4P9_fX32JxcBZ7pvJ3FUZt0YSdIgqeg-po3GVBOHip8lONPKbWvdNcWnpviMXAXqkmfljEd6IDtF0o0
+
+Signature: BRySjfhEdL3mf00x_t-edXPP08uyMzZ_XC-Hp_G6mrqqqZPSHgjURpK04eNHSxb7iT0ooQYPZ1-coqe0H8ecncQ029hUY6zmkJzsFRZ7oW0X2mNGjX-xUF-w1ynRy0mlNcCzrURyI2YjvIJlVBq-TYYsj6URAkbnoZDYddlOpLXMR8favqwXPeOL0j2zA8Fgu3fY_BsanzxNwvdN5fHrlcbg2hrkO7iKrr6LRqbeNn-SwLKIWridXvSEEJ1xk4JOLPWmGRUqxZdTq3DIz_CzIdNf7Plb-5hoG5EZr2Wyy0tL5YWWsFNjtgLMqooUk1P_36RDCuLEZioSOEIPFxQvvPFkEuqQ1aUr_FdUa1JuraGUsEMm3g0JIowdkTfYeXfukIuVNkYElKFA5WH-vYUTFlNUyNzjCoEjEotayrYsA1ZhmDtGbtYAfyk2ky2zG--Sdf4HjFWPf-HYVN65N_DU9UQpMmv20UoIkXVRxp_vvO0cleZTTeFW7-riGUePvHjlCiG6O7UQ3wRMRGxrP30NxEO01_jD3G2X2fjV7yBNk_DmiZZZ-D2-KodshxdgC4tPzERA1EyqnBoenSLNZYntYVdrJq5gvwP_S-N_cCWaEPuV4sG3Sb-tVN-KhrG2V-lFBUhrChfwYg9uVPoVTS86Kup58lqnbDX4J__Pwm3ZNug
+```
+
+### Verify a signed message
+
+This command can verify the signature for an arbitrary UTF-8 string message signed using an Arweave private key. The parameter values can be filled using the output from the [message signing](#sign-a-message) command.
+```
+arweave message-verify \
+--address="MDlauADgN7AoVQl4Eqmwr3xHXyKXMqADaiCas3mEyNQ" \
+--message="my-test-message" \
+--public-key="nFMF-h5inUShL8..." \
+--signature="BRySjfhEdL3mf00x_t-edXPP08uyMzZ_XC-Hp_G6mrqqqZ..."
+```
+```
+Signature verification passed
+```
+
+**Errors**
+
+* `Signature verification failed: the signature is not valid for the given inputs`
+
+  The signature is not valid. Either the message or signature values may have been copied incorrectly, or modified since the signature was generated.
+
+
+* `Signature verification failed: public key does not match the given Arweave address`
+
+  The `--public-key` does not correspond to the supplied Arweave address, given by `--address` . Arweave addresses are SHA-256 hashes of the raw RSA public key.
+
